@@ -1,3 +1,7 @@
+"""
+Cosine LR schedule with warmup. cosine_with_warmup_scheduler() returns a LambdaLR;
+get_cosine_schedule_with_warmup() is the underlying builder. Used by dataset scheduler hooks.
+"""
 import math
 
 import torch.optim as optim

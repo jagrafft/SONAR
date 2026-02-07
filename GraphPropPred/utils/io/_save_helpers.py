@@ -1,3 +1,7 @@
+"""
+Internal helpers for save.py: JSON and pickle dump/load. IO_HELPERS maps
+extension ('json', 'pkl', 'pickle') to (dump_fn, load_fn).
+"""
 from pathlib import Path
 from typing import Any
 

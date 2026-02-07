@@ -1,3 +1,7 @@
+"""
+ADGN (Anti-symmetric DGN) for the graph transfer task.
+AntiSymmetricConv implements the anti-symmetric dynamics; ADGN_Model wraps it in BasicModel style.
+"""
 import torch
 
 from torch.nn import Parameter, init
@@ -8,8 +12,9 @@ from models.ausiliar_modules import NaiveAggr
 from models.gnn_model import BasicModel
 
 
-
 conv_names = ['NaiveAggr', 'GCNConv']
+
+
 class AntiSymmetricConv(MessagePassing):
     def __init__(self, 
                  in_channels: int,
@@ -42,6 +47,7 @@ class AntiSymmetricConv(MessagePassing):
         self.reset_parameters()
 
     def forward(self, x: torch.Tensor, edge_index: torch.Tensor, edge_weight: Optional[torch.Tensor] = None) -> torch.Tensor:
+        """num_iters updates with anti-symmetric W and graph convolution."""
         self.antisymmetric_W = self.W - self.W.T - self.gamma * torch.eye(self.in_channels, device=self.W.device)
         for i in range(self.num_iters):
             neigh_x = self.conv(x, edge_index=edge_index, edge_weight=edge_weight)
@@ -67,7 +73,8 @@ class AntiSymmetricConv(MessagePassing):
 
 
 class ADGN_Model(BasicModel):
-    def init_conv(self, in_channels: int, out_channels: int, activation:str, **kwargs) -> MessagePassing:
+    """BasicModel with AntiSymmetricConv (num_iters, gamma, epsilon, graph_conv)."""
+    def init_conv(self, in_channels: int, out_channels: int, activation: str, **kwargs) -> MessagePassing:
             return AntiSymmetricConv(in_channels=in_channels,
                             num_iters=kwargs['num_iters'],
                             gamma=kwargs['gamma'],

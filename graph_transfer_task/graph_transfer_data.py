@@ -1,3 +1,10 @@
+"""
+Synthetic graph generators and PyG dataset for the graph transfer task.
+
+Provides line_graph, ring_transfer_graph, cliquepath_transfer_graph; distributions
+(ring, crossed-ring, line); and GraphTransferDataset (InMemoryDataset) with
+train/val/test splits. Used by main.py and train.py.
+"""
 import torch
 from torch_geometric.data import Data, InMemoryDataset
 import numpy as np
@@ -14,6 +21,7 @@ distributions = ring_types + line_types
 
 
 def line_graph(distance, channels=1, seed=None):
+    """Build a path graph with distance nodes; source at 0, target at -1; y is flipped x."""
     assert distance > 1
     #if seed is not None: set_seed(seed)
 
@@ -49,8 +57,7 @@ def line_graph(distance, channels=1, seed=None):
 
 
 def cliquepath_transfer_graph(distance, channels=1, seed=None):
-    #if seed is not None: set_seed(seed)
-    
+    """Build clique + path: first half is a clique, second half a path; source/target at ends."""
     assert distance > 3
 
     # d = n/2 + 1
@@ -102,6 +109,7 @@ def cliquepath_transfer_graph(distance, channels=1, seed=None):
 
 
 def ring_transfer_graph(distance, channels, add_crosses: bool, seed=None):
+    """Build a ring of 2*distance nodes; source at 0, target opposite. add_crosses adds cross edges."""
     assert distance > 1
     # if seed is not None: set_seed(seed)
     n_nodes = distance * 2
@@ -187,6 +195,11 @@ def ring_transfer_graph(distance, channels, add_crosses: bool, seed=None):
 
 
 class GraphTransferDataset(InMemoryDataset):
+    """
+    InMemoryDataset for graph transfer: name in distributions, split in train/val/test.
+    Processed files live in root/{name}_{distance}/pre_transform_*/. num_features=1.
+    """
+
     def __init__(self, root, name, distance, split='train', pre_transform=None, transform=None):
         assert name in distributions, f'{name} is not in {distributions}'
         assert split in ['train', 'val', 'test']

@@ -1,3 +1,7 @@
+"""
+SWAN model for the graph transfer task.
+Uses constrained/bounded convs and optional attention; get_adj builds normalized adjacency.
+"""
 import torch
 
 from torch.nn import Parameter, init
@@ -15,7 +19,7 @@ def get_adj(edge_index, edge_weight: Optional[torch.Tensor] = None,
             normalization: Optional[str] = 'sym',
             dtype: Optional[int] = None,
             num_nodes: Optional[int] = None):
-
+    """Build (optionally normalized) edge index and weights for sym/rw/antisym."""
     if normalization is not None:
         assert normalization in ['sym', 'rw', 'antisym']  # 'Invalid normalization'
 
@@ -53,7 +57,10 @@ def get_adj(edge_index, edge_weight: Optional[torch.Tensor] = None,
 
 
 conv_names = ['AntiSymNaiveAggr', 'BoundedGCNConv', 'BoundedNaiveAggr']
+
+
 class SWANConv(MessagePassing):
+    """SWAN layer: anti-symmetric W, graph_conv (AntiSymNaiveAggr/BoundedGCNConv/BoundedNaiveAggr), optional attention."""
     def __init__(self, 
                  in_channels: int,
                  num_iters: int = 1, 
@@ -147,7 +154,8 @@ class SWANConv(MessagePassing):
 
 
 class SWAN_Model(BasicModel):
-    def init_conv(self, in_channels: int, out_channels: int, activation:str, **kwargs) -> MessagePassing:
+    """BasicModel with SWANConv (num_iters, gamma, epsilon, beta, graph_conv, attention)."""
+    def init_conv(self, in_channels: int, out_channels: int, activation: str, **kwargs) -> MessagePassing:
             return SWANConv(in_channels=in_channels,
                             num_iters=kwargs['num_iters'],
                             gamma=kwargs['gamma'],

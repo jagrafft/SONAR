@@ -1,10 +1,16 @@
+"""
+Hyperparameter grids and MODELS registry for the graph transfer task.
+
+Each get_*_conf(in_channels, distance) yields dicts of model kwargs. MODELS maps
+model name to (model_class, getconf). Used by main.py to build the experiment list.
+"""
 from models import *
 from utils import cartesian_product
 import numpy as np
 
 
-
 def get_PHDGN_conservative_conf(in_channels, distance):
+    """Yield PHDGN conservative configs (no external force/dampening)."""
     grid = {
         'hidden_channels':[64],
         'num_layers':[1],
@@ -25,6 +31,7 @@ def get_PHDGN_conservative_conf(in_channels, distance):
 
 
 def get_PHDGN_conf(in_channels, distance):
+    """Yield full PHDGN configs (includes alpha, beta, dampening_mode, external_mode)."""
     grid = {
         'alpha': [0., 1.], # no external force/dampening
         'beta': [0., 1.], # no external force/dampening
@@ -40,7 +47,7 @@ def get_PHDGN_conf(in_channels, distance):
     
 
 def get_GNN_conf(in_channels, distance):
-    # GCN, GAT, GraphSAGE, GIN, GPS
+    """Yield configs for GCN, GAT, GraphSAGE, GIN, GPS (num_layers=distance)."""
     grid = {
         'hidden_channels':[64],
         'num_layers': [distance],
@@ -53,6 +60,7 @@ def get_GNN_conf(in_channels, distance):
 
 
 def get_ADGN_conf(in_channels, distance):
+    """Yield ADGN configs (num_iters=distance, gamma, epsilon, graph_conv)."""
     grid = {
         'hidden_channels':[64],
         'num_layers': [1],
@@ -69,6 +77,7 @@ def get_ADGN_conf(in_channels, distance):
 
 
 def get_SWAN_conf(in_channels, distance):
+    """Yield SWAN configs (num_iters, gamma, epsilon, beta, graph_conv, attention)."""
     grid = {
         'hidden_channels':[64],
         'num_layers': [1],
@@ -89,6 +98,7 @@ def get_SWAN_conf(in_channels, distance):
 
 
 def get_SONAR_conf(in_channels, distance):
+    """Yield SONAR configs (num_iters, epsilon, normalization, use_dissipation, etc.)."""
     grid = {
         'hidden_channels':[64],
         'num_layers': [1],
@@ -107,7 +117,7 @@ def get_SONAR_conf(in_channels, distance):
 
 
 def get_BlockSONAR_conf(in_channels, distance):
-    # Second grid
+    """Yield BlockSONAR configs (num_blocks, num_iters, epsilon, normalization, etc.)."""
     grid = {
         'hidden_channels':[64],
         'num_blocks': [1, 2],
@@ -127,6 +137,7 @@ def get_BlockSONAR_conf(in_channels, distance):
         params['out_channels'] = in_channels
         yield params
 
+# Map model name -> (model_class, getconf). getconf(in_channels, distance) yields kwargs.
 MODELS = {
     'gin' : (GIN_Model, get_GNN_conf),
     'gcn' : (GCN_Model, get_GNN_conf),

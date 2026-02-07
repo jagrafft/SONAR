@@ -1,8 +1,7 @@
-'''
-Adapted from https://github.com/vijaydwivedi75/lrgb.git
-https://github.com/HySonLab/Multires-Graph-Transformer.git
-https://github.com/hamed1375/Exphormer.git
-'''
+"""
+LRGB peptides: PeptidesFunctionalDataset (10-way multi-task), PeptidesStructuralDataset.
+Adapted from LRGB/Exphormer. Used by dataset.py for DataSetFamily.lrgb.
+"""
 import hashlib
 import os.path as osp
 import pickle

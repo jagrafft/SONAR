@@ -1,3 +1,7 @@
+"""
+PHDGN utilities: weight/bias init helpers, LinearTransposedSwitching, PortHamiltonianConv.
+Used by phdgn_model for the Port-Hamiltonian graph convolution.
+"""
 import torch
 import torch.nn.functional as F
 
@@ -11,8 +15,8 @@ import math
 import copy
 
 
-
 def is_uninitialized_parameter(x: Any) -> bool:
+    """Return True if x is an UninitializedParameter."""
     if not hasattr(torch.nn.parameter, 'UninitializedParameter'):
         return False
     return isinstance(x, torch.nn.parameter.UninitializedParameter)
@@ -20,6 +24,7 @@ def is_uninitialized_parameter(x: Any) -> bool:
 
 def reset_weight_(weight: torch.Tensor, in_channels: int,
                   initializer: Optional[str] = None) -> torch.Tensor:
+    """Re-initialize weight with glorot/uniform/kaiming_uniform or default. Returns weight."""
     if in_channels <= 0:
         pass
     elif initializer == 'glorot':
@@ -39,6 +44,7 @@ def reset_weight_(weight: torch.Tensor, in_channels: int,
 
 def reset_bias_(bias: Optional[torch.Tensor], in_channels: int,
                 initializer: Optional[str] = None) -> Optional[torch.Tensor]:
+    """Re-initialize bias with zeros/uniform or default. Returns bias."""
     if bias is None or in_channels <= 0:
         pass
     elif initializer == 'zeros':
@@ -419,11 +425,12 @@ class ExternalForcing(MessagePassing):
 
 
 class PortHamiltonianConv(MessagePassing):
-    def __init__(self, 
+    """Port-Hamiltonian graph convolution: p/q dynamics with gradient nets (p_conv_mode, q_conv_mode), optional dampening and external force."""
+    def __init__(self,
                  in_channels: int,
-                 num_iters: int = 1, 
-                 epsilon : float = 0.1, 
-                 activ_fun: str = 'tanh', # it should be monotonically non-decreasing
+                 num_iters: int = 1,
+                 epsilon: float = 0.1,
+                 activ_fun: str = 'tanh',
                  p_conv_mode: str = 'naive',
                  q_conv_mode: str = 'naive',
                  bias: bool = True,

@@ -1,10 +1,15 @@
+"""
+PHDGN (Port-Hamiltonian DGN) for the graph transfer task.
+Uses PortHamiltonianConv from phdgn_utils; supports double_dim and final_state (p, q, pq).
+"""
 import torch
 from models.gnn_model import BasicModel
 from models.phdgn_utils import PortHamiltonianConv
 
 
 class PHDGN_Model(BasicModel):
-    def init_conv(self, in_channels: int, out_channels: int, activation:str, *args, **kwargs):
+    """BasicModel with PortHamiltonianConv; double_dim doubles hidden size, final_state selects p/q/pq."""
+    def init_conv(self, in_channels: int, out_channels: int, activation: str, *args, **kwargs):
         self.double_dim = kwargs['double_dim']
         self.final_state = kwargs['pq'] # p, q, pq
         

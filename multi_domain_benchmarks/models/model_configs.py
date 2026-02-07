@@ -1,5 +1,9 @@
+"""
+Model type enum and config API: ModelType, get(), get_single_conf(), get_conf().
+Yields model_conf, optimizer_conf, scheduler_conf for BlockSONAR. Used by main and ModelSelection.
+"""
 from enum import Enum, auto
-from models.sonar import BlockSONAR #SONAR
+from models.sonar import BlockSONAR
 from helpers.dataset_classes.dataset import DataSetFamily, DataSet
 from helpers.encoders import GPPDecoders
 from helpers.utils import cartesian_product
@@ -8,7 +12,7 @@ from helpers.classes import Pool
 
 
 class ModelType(Enum):
-
+    """Supported model: BlockSONAR. get() returns class; get_conf/get_single_conf return config dicts."""
     BlockSONAR = auto()
 
     @staticmethod

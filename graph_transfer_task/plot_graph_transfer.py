@@ -1,7 +1,15 @@
+"""
+Runnable plotting script for graph transfer results.
+
+Reads final_results_*.csv and baseline_results_*.csv from results/; builds plot/plot_std
+dicts (MSE vs distance per model); produces GraphTransfer_logscale_all.png (or
+GraphTransfer_all.png) with one subplot per graph type (line, ring, crossed-ring).
+Expects results under ./results/ and baseline CSVs as results/baseline_results_<type>.csv.
+"""
 import os
 import pandas
 from matplotlib import pyplot as plt
-import matplotlib 
+import matplotlib
 import numpy as np
 
 

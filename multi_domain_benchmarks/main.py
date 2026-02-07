@@ -1,9 +1,17 @@
+"""
+Entry point for multi-domain benchmarks (heterophilic, LRGB, graph classification, etc.).
+
+Parses args (root_dir, dataset, model, seeds, patience, max_epochs, pos_enc, ...), sets
+root/result/ckpt dirs, loads dataset once. Either runs a single experiment (Experiment.run_)
+or model selection (ModelSelection.run). Run from this directory so helpers and models resolve.
+"""
 from helpers.parse_arguments import parse_arguments
 from helpers.dataset_classes.dataset import DataSetFamily
 from model_selection import ModelSelection
 from helpers.encoders import PosEncoder
 from experiments import Experiment
-import time, datetime
+import time
+import datetime
 import os
 
 if __name__ == '__main__':

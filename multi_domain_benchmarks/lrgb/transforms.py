@@ -1,3 +1,7 @@
+"""
+LRGB transforms: pre_transform_in_memory, typecast_x, apply_transform, and PE/graph transforms.
+Used by dataset loaders and dataset.py (apply_transform).
+"""
 import logging
 import time
 from functools import partial
@@ -8,6 +12,8 @@ from tqdm import tqdm
 
 from lrgb.encoders.compute import compute_posenc_stats
 from lrgb.split_generator import set_dataset_splits
+
+
 def pre_transform_in_memory(dataset, transform_func, show_progress=False):
     """Pre-transform already loaded PyG dataset object.
 
@@ -85,7 +91,8 @@ def clip_graphs_to_size(data, size_limit=5000):
         return data
 
 
-def apply_transform(dataset, pos_encoder):          
+def apply_transform(dataset, pos_encoder):
+    """Precompute PE stats (compute_posenc_stats) and set_dataset_splits; pre_transform_in_memory with PE. Returns dataset."""
     start = time.perf_counter()
     logging.info(f"Precomputing Positional Encoding statistics for all graphs... ")
     # Estimate directedness based on 10 graphs to save time.

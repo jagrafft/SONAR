@@ -1,3 +1,7 @@
+"""
+CLI for multi-domain benchmarks: root_dir, dataset, model, seeds, patience, max_epochs,
+pos_enc, pool, parallelism, gumbel/optimizer/scheduler options, etc. Used by main.py.
+"""
 from argparse import ArgumentParser
 
 from helpers.dataset_classes.dataset import DataSet
@@ -6,7 +10,9 @@ from helpers.encoders import PosEncoder
 import os
 from models.model_configs import ModelType
 
+
 def parse_arguments():
+    """Parse command-line args for dataset, model, optimization, parallelism, seeds, pos_enc, etc. Returns namespace."""
     parser = ArgumentParser()
     parser.add_argument("--root_dir", dest="root_dir", 
                         default=os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 

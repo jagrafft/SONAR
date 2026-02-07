@@ -1,22 +1,19 @@
+"""
+Utilities: cartesian_product, optimizer_to, set_seed, get_split_mask, join_dataset_splits.
+Used by experiments, model_selection, and dataset code.
+"""
 import torch
 import random
 import numpy as np
 import os
 from torch_geometric.data import Data
-from typing import List, Tuple, Union
+from typing import Any, List, Tuple, Union
 from torch import Tensor
 import itertools
 
 
 def cartesian_product(params):
-    # Given a dictionary where for each key is associated a lists of values, the function compute cartesian product
-    # of all values. 
-    # Example:
-    #  Input:  params = {"n_layer": [1,2], "bias": [True, False] }
-    #  Output: {"n_layer": [1], "bias": [True]}
-    #          {"n_layer": [1], "bias": [False]}
-    #          {"n_layer": [2], "bias": [True]}
-    #          {"n_layer": [2], "bias": [False]}
+    """Yield dicts from the cartesian product of param values (key -> list of values)."""
     keys = params.keys()
     vals = params.values()
     for instance in itertools.product(*vals):
@@ -24,7 +21,7 @@ def cartesian_product(params):
 
 
 def optimizer_to(optim, device):
-    # Code from https://discuss.pytorch.org/t/moving-optimizer-from-cpu-to-gpu/96068/3
+    """Move optimizer state tensors to device (e.g. after loading checkpoint)."""
     for param in optim.state.values():
         if isinstance(param, torch.Tensor):
             param.data = param.data.to(device)
@@ -39,6 +36,7 @@ def optimizer_to(optim, device):
 
 
 def set_seed(seed):
+    """Set random seed for Python, numpy, torch, CUDA; disable cudnn non-determinism."""
     os.environ['PYTHONHASHSEED'] = str(seed)
     random.seed(seed)
     np.random.seed(seed)
@@ -53,6 +51,7 @@ def set_seed(seed):
 
 
 def get_split_mask(data: Data, batch_size: int, split_mask_name: str) -> Tuple[Tensor, Tensor]:
+    """Return (batch_mask, node_mask) for the given split (e.g. train_mask)."""
     if hasattr(data, split_mask_name):
         return getattr(data, split_mask_name), getattr(data, split_mask_name)
     else:
@@ -64,7 +63,7 @@ Adapted from https://github.com/hamed1375/Exphormer.git
 '''
 
 
-def join_dataset_splits(datasets):
+def join_dataset_splits(datasets: List) -> Any:
     """Join train, val, test datasets into one dataset object.
 
     Args:

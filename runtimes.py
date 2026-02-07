@@ -1,3 +1,12 @@
+"""
+Runnable benchmark script for SONAR vs GCN vs GPS.
+
+Compares GCN, SONAR, GPS, and sonar2 on the Roman-empire (heterophilous) dataset:
+train/test time and GPU memory vs number of layers (2, 4, 8, 16, 32). Uses a fixed
+~100k parameter budget per (num_layers, conv_name). Results are cached in runtimes.pkl
+and written to per-layer CSVs; then train_time_vs_layers.png and test_time_vs_layers.png
+are produced. Imports SONARConv from GraphPropPred.models.sonar.
+"""
 import torch
 import torch.nn.functional as F
 
@@ -9,7 +18,13 @@ import numpy
 import pickle, pandas
 import gc
 
+
 class GNN(torch.nn.Module):
+    """
+    Generic GNN: linear embedding, stack of conv layers (optionally with MLPs), linear decoder.
+    Supports conv_name in {'gcn', 'gps', 'sonar', 'sonar2'}. Used by the benchmark loop.
+    """
+
     def __init__(self, input_dim, output_dim, hidden_dim, conv_name, nlayers, conv_params={}):
         super().__init__()
         self.emb = torch.nn.Linear(input_dim, hidden_dim)
@@ -40,6 +55,7 @@ class GNN(torch.nn.Module):
         self.dec = torch.nn.Linear(hidden_dim, output_dim)
 
     def forward(self, data):
+        """Forward pass: embed, conv stack (+ MLPs for sonar), decode."""
         x, edge_index = data.x, data.edge_index
         x = self.emb(x)
         for i, conv in enumerate(self.convs):
@@ -65,6 +81,7 @@ mask_test = data.test_mask[:,fold_id]
 
 
 def train(data, mask_train):
+    """One training step: forward, NLL loss on mask_train, backward, step."""
     model.train()
     optimizer.zero_grad()
     pred = model(data)
@@ -74,6 +91,7 @@ def train(data, mask_train):
 
 @torch.no_grad()
 def test(data, mask_test):
+    """Evaluation: accuracy on mask_test."""
     model.eval()
     pred = model(data).argmax(dim=1)
     correct = (pred[mask_test] == data.y[mask_test]).sum()

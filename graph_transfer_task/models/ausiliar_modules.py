@@ -1,10 +1,14 @@
+"""
+Auxiliary layers for ADGN, PHDGN, SWAN: AntiSymmetric/Symmetric parametrizations,
+ConstrainedConv (sym/antisym), NaiveAggr. Used by adgn_model, swan_model.
+"""
 import torch
 
 from torch.nn import Linear, Module
 from torch_geometric.nn import MessagePassing
 from torch.nn.utils.parametrize import register_parametrization
 from typing import Optional
-from torch.nn import Module
+
 
 class AntiSymmetric(Module):
     r"""
@@ -41,7 +45,8 @@ class Symmetric(Module):
 
 
 class ConstrainedConv(MessagePassing):
-    def __init__(self, in_channels, antisym = False, sym = False, edge_dim = 0):
+    """Message passing with optional symmetric/antisymmetric weight parametrization and edge features."""
+    def __init__(self, in_channels, antisym=False, sym=False, edge_dim=0):
         super().__init__(aggr='add')
         assert not (antisym and sym)
         self.in_channels = in_channels

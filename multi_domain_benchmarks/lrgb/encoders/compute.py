@@ -1,3 +1,6 @@
+"""
+Precompute positional encoding stats: compute_posenc_stats (LapPE, RWSE). Used by lrgb.transforms and dataset loaders.
+"""
 import numpy as np
 import torch
 import torch.nn.functional as F

@@ -1,3 +1,7 @@
+"""
+Base GNN and standard architectures (GCN, GAT, GIN, SAGE, GPS) for the graph transfer task.
+BasicModel: embed, conv stack, readout; subclasses implement init_conv.
+"""
 import torch
 from torch_geometric.nn import GCNConv, GATConv, GINConv, SAGEConv, GPSConv
 from torch_geometric.nn.resolver import activation_resolver
@@ -6,6 +10,8 @@ from typing import Optional
 
 
 class BasicModel(Module):
+    """Base: linear embed (optional), num_layers convs with activation, linear readout. Subclasses define init_conv."""
+
     def __init__(self,
                  in_channels: int,
                  out_channels: int,
@@ -43,30 +49,36 @@ class BasicModel(Module):
 
     def init_conv(self, in_channels, out_channels, activation, **kwargs):
         raise NotImplementedError
-    
+
 
 class GCN_Model(BasicModel):
-    def init_conv(self, in_channels, out_channels, activation, *args,  **kwargs):
+    """BasicModel with GCNConv layers."""
+    def init_conv(self, in_channels, out_channels, activation, *args, **kwargs):
         return GCNConv(in_channels, out_channels)
 
 
 class GAT_Model(BasicModel):
-    def init_conv(self, in_channels, out_channels, activation, *args,  **kwargs):
+    """BasicModel with GATConv layers."""
+    def init_conv(self, in_channels, out_channels, activation, *args, **kwargs):
         return GATConv(in_channels, out_channels)
-    
+
 
 class GIN_Model(BasicModel):
+    """BasicModel with GINConv layers (train_eps=True)."""
     def init_conv(self, in_channels, out_channels, activation, *args, **kwargs):
         nn = Linear(in_channels, out_channels)
-        return GINConv(nn, train_eps = True)
+        return GINConv(nn, train_eps=True)
+
 
 class SAGE_Model(BasicModel):
-    def init_conv(self, in_channels, out_channels, activation, *args,  **kwargs):
+    """BasicModel with SAGEConv layers."""
+    def init_conv(self, in_channels, out_channels, activation, *args, **kwargs):
         return SAGEConv(in_channels, out_channels)
-    
+
 
 class GPS_Model(BasicModel):
-    def init_conv(self, in_channels, out_channels, activation, *args,  **kwargs):
+    """BasicModel with GPSConv (GCN + multihead attention, layer norm)."""
+    def init_conv(self, in_channels, out_channels, activation, *args, **kwargs):
         assert in_channels == out_channels
         attn_kwargs = {'dropout': 0.0}
         nn = GCNConv(in_channels, out_channels)

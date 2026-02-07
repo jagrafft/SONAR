@@ -1,9 +1,12 @@
+"""
+Position and dataset encoders: PosEncoder, DataSetEncoders, GPPDecoders; EncoderLinear.
+Dataset-specific node/edge encoders (MOL, VOC). Used by dataset loaders and models.
+"""
 from enum import Enum, auto
 from torch.nn import Linear, LeakyReLU, Sequential
 from torch import Tensor
 from torch_geometric.data import Data
 from collections import OrderedDict
-
 
 from lrgb.encoders.laplace import LapPENodeEncoder, LAP_DIM_PE
 from lrgb.encoders.kernel import RWSENodeEncoder, KER_DIM_PE

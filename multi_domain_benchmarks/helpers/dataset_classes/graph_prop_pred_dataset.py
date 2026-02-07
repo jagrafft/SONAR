@@ -1,3 +1,7 @@
+"""
+GPP dataset for multi-domain benchmarks: sssp, eccentricity, diameter. Normalize and
+InMemoryDataset with train/val/test indices. Used by dataset.py for DataSetFamily.gpp.
+"""
 import os
 import torch
 import os.path as osp
@@ -6,7 +10,7 @@ from torch_geometric.data import InMemoryDataset, Data, download_url, extract_ta
 
 
 def normalize(node_labels, graph_labels):
-    # normalize labels
+    """Normalize node and graph labels by max over train set."""
     max_node_labels = torch.cat([nls.max(0)[0].max(0)[0].unsqueeze(0) for nls in node_labels['train']]).max(0)[0]
     max_graph_labels = torch.cat([gls.max(0)[0].unsqueeze(0) for gls in graph_labels['train']]).max(0)[0]
     for dset in node_labels.keys():

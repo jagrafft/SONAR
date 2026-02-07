@@ -1,3 +1,10 @@
+"""
+Entry point for GraphPropPred (graph property prediction: diam, sssp, ecc).
+
+Parses CLI (task, model_name, epochs, early_stopping, save_dir, cpus, gpus), creates
+save_dir/task/model_name dirs, and runs model_selection. Uses Ray for parallel
+config evaluation. Run from repo root so that utils and conf resolve.
+"""
 import os
 import torch
 

@@ -1,3 +1,12 @@
+"""
+Runnable script for sensitivity analysis on the graph transfer task.
+
+Compares BlockSONAR vs standard GNN (e.g. GCN) via finite-difference or jacrev-based
+sensitivity of the last layer output to input perturbations on ring/line graphs.
+Saves sensitivity matrices to sensitivity_results/ and sensitivity_results_gnn/;
+then prints norms at selected distances. Script ends with ValueError (not for direct
+production use). Set device and data paths at top of __main__ block.
+"""
 import torch
 import torch.nn.functional as F
 
@@ -9,7 +18,10 @@ import pickle, pandas
 import gc
 from torch.func import jacrev, vmap
 
+
 class GNN(torch.nn.Module):
+    """GNN used for sensitivity comparison: embedding, conv stack (+ MLPs for sonar), decoder. .device set by script."""
+
     def __init__(self, input_dim, output_dim, hidden_dim, conv_name, nlayers, conv_params={}):
         super().__init__()
         self.emb = torch.nn.Linear(input_dim, hidden_dim)

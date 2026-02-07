@@ -1,4 +1,6 @@
-
+"""
+ReduceLROnPlateau wrapper with optional get_last_lr for compatibility. Used by dataset scheduler hooks.
+"""
 import math
 
 import torch.optim as optim

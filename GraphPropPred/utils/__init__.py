@@ -1,10 +1,16 @@
+"""
+GraphPropPred utils: dataset loader and task constants.
+get_dataset(root, task) returns train/val/test GPPDataset and num_features, num_classes.
+"""
 from .gpp_dataset import GPPDataset, TASKS
-def get_dataset(root: str, task=None):
 
+
+def get_dataset(root: str, task=None):
+    """Load train/val/test GPPDataset for task; return (train, valid, test, num_features, num_classes)."""
     assert task is None or task in TASKS
 
-    data_train = GPPDataset(root, name=task, split='train') 
-    data_valid = GPPDataset(root, name=task, split='val') 
+    data_train = GPPDataset(root, name=task, split='train')
+    data_valid = GPPDataset(root, name=task, split='val')
     data_test = GPPDataset(root, name=task, split='test')
     num_features = data_train.num_features
     num_classes = data_train.num_classes

@@ -1,10 +1,16 @@
+"""
+Serialize/deserialize by file extension; create_if_not_exist for dirs.
+_resolve maps extension to (dump, load) from _save_helpers.IO_HELPERS.
+"""
 import warnings
 from pathlib import Path
 from typing import Union, Any
 from ._save_helpers import IO_HELPERS
 import os
 
+
 def _resolve(path: str):
+    """Return (dump_fn, load_fn) for the path's extension (json, pkl, pickle)."""
     try:
         _, ext = path.split('.')
     except ValueError:
@@ -23,6 +29,7 @@ def _resolve(path: str):
 
 
 def dump(obj: Any, path: Union[Path, str]):
+    """Serialize obj to path; format inferred from extension. Creates parent dirs."""
     path = Path(path)
 
     path.parent.mkdir(parents=True,
@@ -33,6 +40,7 @@ def dump(obj: Any, path: Union[Path, str]):
 
 
 def load(path: Union[Path, str]) -> Any:
+    """Deserialize from path; format inferred from extension."""
     path = Path(path)
 
     _, load_ = _resolve(path.name)
@@ -40,6 +48,7 @@ def load(path: Union[Path, str]) -> Any:
 
 
 def create_if_not_exist(path: Union[Path, str]):
+    """Create directory path (and parents) if they do not exist."""
     path = Path(path)
     path.parent.mkdir(parents=True,
                       exist_ok=True)

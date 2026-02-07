@@ -1,3 +1,7 @@
+"""
+DataSet enum, DataSetFamily, DatasetBySplit; load(), get_folds(), select_fold_and_split().
+Unified interface for heterophilic, synthetic, LRGB, GPP, etc. Used by main and ModelSelection.
+"""
 import os
 import copy
 import os.path as osp
@@ -16,13 +20,13 @@ from helpers.dataset_classes.root_neighbours_dataset import RootNeighboursDatase
 from helpers.dataset_classes.cycles_dataset import CyclesDataset
 from helpers.dataset_classes.lrgb import PeptidesFunctionalDataset, PeptidesStructuralDataset
 from helpers.dataset_classes.classic_datasets import Planetoid
-#from helpers.constants import ROOT_DIR
 from helpers.metrics import MetricType
 from helpers.classes import ActivationType, Pool
 from helpers.encoders import DataSetEncoders, PosEncoder, GPPDecoders
 from lrgb.cosine_scheduler import cosine_with_warmup_scheduler
 from lrgb.transforms import apply_transform
 from helpers.dataset_classes.graph_prop_pred_dataset import GPPDataset
+
 
 class DatasetBySplit(NamedTuple):
     train: Union[Data, List[Data]]

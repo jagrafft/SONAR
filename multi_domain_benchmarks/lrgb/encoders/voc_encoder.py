@@ -1,21 +1,16 @@
+"""
+VOC superpixels encoders: VOCNodeEncoder, VOCEdgeEncoder. Used by helpers.encoders for Pascal VOC.
+"""
 import torch
 from torch_geometric.graphgym.config import cfg
 from torch_geometric.graphgym.register import (register_node_encoder,
                                                register_edge_encoder)
 
-"""
-=== Description of the VOCSuperpixels dataset === 
-Each graph is a tuple (x, edge_attr, edge_index, y)
-Shape of x : [num_nodes, 14]
-Shape of edge_attr : [num_edges, 1] or [num_edges, 2]
-Shape of edge_index : [2, num_edges]
-Shape of y : [num_nodes]
-"""
-
 VOC_node_input_dim = 14
-# VOC_edge_input_dim = 1 or 2; defined in class VOCEdgeEncoder
+
 
 class VOCNodeEncoder(torch.nn.Module):
+    """Linear encoder for VOC node features (14-dim to emb_dim)."""
     def __init__(self, emb_dim):
         super().__init__()
 
@@ -31,6 +26,7 @@ register_node_encoder('VOCNode', VOCNodeEncoder)
 
 
 class VOCEdgeEncoder(torch.nn.Module):
+    """Linear encoder for VOC edge features (2-dim to emb_dim)."""
     def __init__(self, emb_dim):
         super().__init__()
 

@@ -1,3 +1,7 @@
+"""
+Parallel model selection: build conf_list from model.get_conf, submit Experiment.run.remote
+for each (conf, seed), collect results, aggregate by conf_id, write partial and final CSVs.
+"""
 from experiments import Experiment
 from argparse import Namespace
 import pandas as pd
@@ -8,7 +12,10 @@ import ray
 import os
 import gc
 
+
 class ModelSelection(object):
+    """Orchestrates Ray experiments, collect_results, aggregate_res; run() returns final_df sorted by val metric."""
+
     def __init__(self, args: Namespace):
         super().__init__()
         for arg in vars(args):

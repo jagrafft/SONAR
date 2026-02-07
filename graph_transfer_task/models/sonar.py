@@ -1,7 +1,13 @@
+"""
+Graph transfer variant of SONAR: LaplacianAggr, NullForce, SONARConv, BlockSONAR_Model.
 
+Implements long-range propagation via resistance-weighted Laplacian and optional
+dissipation/forcing. BlockSONAR_Model stacks SONARConv blocks with MLPs and a
+readout. Used by conf.py (get_BlockSONAR_conf) and train/main.
+"""
 import torch
 
-from torch.nn import Module, Parameter, Linear, Sequential, ReLU, ModuleList
+from torch.nn import Module, Linear, Sequential, ReLU, ModuleList
 from torch_geometric.nn import MessagePassing
 from torch_geometric.utils import get_laplacian
 from typing import Optional
@@ -14,7 +20,7 @@ class LaplacianAggr(MessagePassing):
     Graph convolution which compute the laplacian of the graph with weights based on the edge resistance
     """
     def __init__(self, in_channels, normalization=None):
-        """
+        r"""
         Args:
         in_channels (int): The number of input channels.
         normalization (str, optional): The normalization scheme for the graph Laplacian (default: :obj:`None`):
@@ -31,6 +37,7 @@ class LaplacianAggr(MessagePassing):
         """
         super().__init__(aggr='add')
         assert normalization in [None, "sym", "rw"]
+        self.in_channels = in_channels
         self.lin = Linear(in_channels, in_channels, bias=False)
         self.normalization = normalization
         
@@ -51,10 +58,12 @@ class LaplacianAggr(MessagePassing):
         return x_j if edge_resistance is None else edge_resistance.view(-1, 1) * x_j
 
     def __repr__(self) -> str:
-        return f'self.__class__.__name__(in_channels: {self.in_channels}, normalization: {self.normalization})'
+        return f'{self.__class__.__name__}(in_channels: {self.in_channels}, normalization: {self.normalization})'
 
 
 class NullForce(Module):
+    """Placeholder module that returns zeros (no dissipation/forcing)."""
+
     def __init__(self, *args, **kwargs) -> None:
         super().__init__()
 
@@ -63,12 +72,18 @@ class NullForce(Module):
 
 
 class SONARConv(MessagePassing):
-    def __init__(self, 
+    """
+    SONAR message-passing layer: resistance-weighted Laplacian updates with optional
+    dissipation and forcing over num_iters. fix_resistance: if True, edge resistance
+    is computed once per forward; otherwise recomputed each iteration.
+    """
+
+    def __init__(self,
                  in_channels: int,
                  edge_channels: int,
-                 num_iters: int = 1, 
-                 epsilon : float = 0.01,
-                 activ_fun: str = 'tanh', # it should be monotonically non-decreasing
+                 num_iters: int = 1,
+                 epsilon: float = 0.01,
+                 activ_fun: str = 'tanh',
                  normalization: str = None,
                  use_dissipation: bool = False,
                  use_forcing: bool = False,
@@ -76,16 +91,13 @@ class SONARConv(MessagePassing):
                  bias: bool = False) -> None:
 
         super().__init__(aggr = 'add')
-        self.W = Parameter(torch.empty((in_channels, in_channels)))
-        self.bias = Parameter(torch.empty(in_channels)) if bias else None
-        
         self.in_channels = in_channels
         self.edge_channels = edge_channels
         self.num_iters = num_iters
         self.use_dissipation = use_dissipation
         self.use_forcing = use_forcing
         self.epsilon = epsilon
-        self.fix_restistance = fix_resistance
+        self.fix_resistance = fix_resistance
         
         self.conv = LaplacianAggr(in_channels, normalization=normalization)
 
@@ -123,7 +135,7 @@ class SONARConv(MessagePassing):
         edge_resistance = self.edge_resistance_net(res).squeeze().abs()
         for i in range(self.num_iters):
             # If the edge resistance is not fixed, compute it
-            if not self.fix_restistance:
+            if not self.fix_resistance:
                 res = (torch.cat([x[edge_index[0]], x[edge_index[1]], edge_weight], dim=1) if edge_weight is not None 
                        else torch.cat([x[edge_index[0]], x[edge_index[1]]], dim=1))
                 edge_resistance = self.edge_resistance_net(res).squeeze().abs()
@@ -166,7 +178,12 @@ class SONARConv(MessagePassing):
 #         return x
     
 class BlockSONAR_Model(Module):
-    def __init__(self, 
+    """
+    Full model for graph transfer: embed, num_blocks of (SONARConv + MLP), readout.
+    .device can be set by caller for sensitivity scripts. Forward accepts PyG data (x, edge_index).
+    """
+
+    def __init__(self,
                  in_channels,
                  out_channels,
                  hidden_channels,
@@ -178,7 +195,6 @@ class BlockSONAR_Model(Module):
                  normalization: str = None,
                  use_dissipation: bool = True,
                  use_forcing: bool = False,
-                 #train_weights: bool = True, 
                  fix_resistance: bool = True,
                  bias: bool = False) -> None:
         super().__init__()
@@ -242,7 +258,7 @@ class BlockSONAR_Model(Module):
     def forward(self, data) -> torch.Tensor:
         # Get the data
         x, edge_index = data.x, data.edge_index
-        edge_weight = None
+        edge_weight = getattr(data, 'edge_weight', None)
 
         # Embed the features
         x = self.emb(x) if self.emb else x
@@ -269,22 +285,17 @@ class BlockSONAR_Model(Module):
         return x
     
     def forward_sensitivity(self, data) -> torch.Tensor:
-        # Get the data
-        x, edge_index = data.x.to(self.device), data.edge_index.to(self.device)
-        x = self.emb(x)
-        print(x.shape)
-        
-        print(len(self.convs))
+        device = self.device if self.device is not None else data.x.device
+        x = data.x.to(device)
+        edge_index = data.edge_index.to(device)
+        x = self.emb(x) if self.emb else x
+
         def layer_update(x, edge_index):
             for conv, mlp in zip(self.convs, self.mlps):
                 x = conv(x, edge_index)
                 x = mlp(x)
             return x
-        conv_layer = self.convs[-1]  # Get the last convolutional layer
-        
+
         sensitivity_calc = jacrev(lambda x: layer_update(x, edge_index))
-        #sensitivity = vmap(sensitivity_calc)(x)
         sensitivity = sensitivity_calc(x)
         return sensitivity
-        
-        return x

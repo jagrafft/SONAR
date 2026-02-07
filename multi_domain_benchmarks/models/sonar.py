@@ -1,4 +1,7 @@
-
+"""
+Multi-domain variant of SONAR: EdgeFeatureAggregator, LaplacianAggr, SONARConv, BlockSONAR.
+Supports edge_attr and EnvArgs; used for heterophilic, LRGB, and other benchmarks.
+"""
 import torch
 
 from torch_geometric.nn import MessagePassing, LayerNorm
@@ -6,7 +9,7 @@ from torch_geometric.utils import get_laplacian, add_self_loops, add_remaining_s
 from torch_geometric.utils.num_nodes import maybe_num_nodes
 from typing import Optional
 from helpers.classes import EnvArgs, Pool
-from torch.nn import (Module, Dropout, Identity, 
+from torch.nn import (Module, Dropout, Identity,
                       Parameter, Linear, Sequential, ReLU, ModuleList, BatchNorm1d, GELU)
 
 
@@ -56,7 +59,7 @@ class LaplacianAggr(MessagePassing):
     Graph convolution which compute the laplacian of the graph with weights based on the edge resistance
     """
     def __init__(self, in_channels, normalization=None):
-        """
+        r"""
         Args:
         in_channels (int): The number of input channels.
         normalization (str, optional): The normalization scheme for the graph Laplacian (default: :obj:`None`):
@@ -73,6 +76,7 @@ class LaplacianAggr(MessagePassing):
         """
         super().__init__(aggr='add')
         assert normalization in [None, "sym", "rw"]
+        self.in_channels = in_channels
         self.lin = Linear(in_channels, in_channels, bias=True)
         #self.lin_edge = Linear(in_channels, in_channels, bias=True)
         self.normalization = normalization
@@ -99,7 +103,7 @@ class LaplacianAggr(MessagePassing):
             return x_j + edge_attr if edge_resistance is None else edge_resistance.view(-1, 1) * (x_j + edge_attr)
 
     def __repr__(self) -> str:
-        return f'self.__class__.__name__(in_channels: {self.in_channels}, normalization: {self.normalization})'
+        return f'{self.__class__.__name__}(in_channels: {self.in_channels}, normalization: {self.normalization})'
 
 
 class NullForce(Module):
@@ -125,16 +129,15 @@ class SONARConv(MessagePassing):
                  bias: bool = False) -> None:
 
         super().__init__(aggr = 'add')
-        self.dropout = Dropout(p=0.) ### BE CAREFUL, this is not the one in the constructor
-        
+        self.dropout = Dropout(p=dropout)
+
         self.in_channels = in_channels
         self.edge_channels = edge_channels
         self.num_iters = num_iters
         self.use_dissipation = use_dissipation
         self.use_forcing = use_forcing
         self.epsilon = epsilon
-        self.fix_restistance = fix_resistance
-        self.bnorm = BatchNorm1d(in_channels)
+        self.fix_resistance = fix_resistance
 
         self.conv = LaplacianAggr(in_channels, normalization=normalization)
 
@@ -168,14 +171,14 @@ class SONARConv(MessagePassing):
         v = self.velocity_net(x)
         
         # Get the edge resistance
-        if self.fix_restistance:
+        if self.fix_resistance:
             res = (torch.cat([x[edge_index[0]], x[edge_index[1]]], dim=1) if edge_attr is not None 
                    else torch.cat([x[edge_index[0]], x[edge_index[1]]], dim=1))
             edge_resistance = self.edge_resistance_net(res).squeeze().abs()
         
         for i in range(self.num_iters):
             # If the edge resistance is not fixed, compute it
-            if not self.fix_restistance:
+            if not self.fix_resistance:
                 res = (torch.cat([x[edge_index[0]], x[edge_index[1]]], dim=1) if edge_attr is not None 
                        else torch.cat([x[edge_index[0]], x[edge_index[1]]], dim=1))
                 edge_resistance = self.edge_resistance_net(res).squeeze().abs()
@@ -230,10 +233,7 @@ class BlockSONAR(Module):
         
         if self.aggregate_edge_features:
             self.hidden_dim += 2*self.hidden_dim
-        
-        # Node encoders
-        self.use_encoders = env_args.dataset_encoders.use_encoders()
-        self.node_encoder = env_args.load_enc()
+
         self.node_decoder = env_args.load_dec(hid_dim=self.hidden_dim)
     
         params = {

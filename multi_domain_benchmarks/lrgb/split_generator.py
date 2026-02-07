@@ -1,3 +1,7 @@
+"""
+LRGB split handling: set_dataset_splits for node- or graph-level train/val/test masks or indices.
+Used by dataset loaders (e.g. LRGB peptides).
+"""
 from torch_geometric.graphgym.loader import index2mask, set_dataset_attr
 
 

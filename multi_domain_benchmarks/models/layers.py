@@ -1,17 +1,18 @@
+"""
+Shared message-passing layers: MolConv (edge_attr/edge_weight), WeightedGCNConv. Used by SONAR and encoders.
+"""
 from torch import Tensor
 from torch.nn import Linear
 
 from torch_geometric.nn.conv import MessagePassing
 from torch_geometric.nn.conv.gcn_conv import gcn_norm
 from torch_geometric.typing import NoneType  # noqa
-from torch_geometric.typing import (
-    Adj,
-    OptTensor,
-)
+from torch_geometric.typing import Adj, OptTensor
 from torch_geometric.utils import remove_self_loops, add_remaining_self_loops
 
 
 class MolConv(MessagePassing):
+    """Message passing with optional edge_attr and edge_weight in message."""
     def __init__(self, aggr='add'):
         super().__init__(aggr=aggr)  # 'add', 'mean' or 'max'
 
@@ -34,6 +35,7 @@ class MolConv(MessagePassing):
 
 
 class WeightedGCNConv(MolConv):
+    """GCN-style conv with gcn_norm and optional edge_attr/edge_weight."""
     def __init__(self, in_channels: int, out_channels: int, bias: bool, **kwargs):
         kwargs.setdefault('aggr', 'add')
         super().__init__(**kwargs)

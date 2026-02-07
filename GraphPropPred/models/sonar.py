@@ -1,20 +1,23 @@
+"""
+GraphPropPred variant of SONAR: LaplacianAggr, NullForce, SONARConv, BlockSONAR.
 
+Same propagation as graph_transfer SONAR; BlockSONAR adds graph-level readout (add/max/mean
+pool) when not node_level_task, and node-level readout otherwise. Used by conf and train_GraphProp.
+"""
 import torch
 
-from torch.nn import Module, Parameter, Linear, Sequential, LeakyReLU, ReLU, ModuleList
+from torch.nn import Module, Linear, Sequential, LeakyReLU, ReLU, ModuleList
 from torch_geometric.nn import MessagePassing, global_add_pool, global_max_pool, global_mean_pool
 from torch_geometric.utils import get_laplacian
 from typing import Optional
-#from GraphProp_model_utils import *
 from collections import OrderedDict
-from torch.func import jacrev
 
 class LaplacianAggr(MessagePassing):
     r"""
     Graph convolution which compute the laplacian of the graph with weights based on the edge resistance
     """
     def __init__(self, in_channels, normalization=None):
-        """
+        r"""
         Args:
         in_channels (int): The number of input channels.
         normalization (str, optional): The normalization scheme for the graph Laplacian (default: :obj:`None`):
@@ -31,6 +34,7 @@ class LaplacianAggr(MessagePassing):
         """
         super().__init__(aggr='add')
         assert normalization in [None, "sym", "rw"]
+        self.in_channels = in_channels
         self.lin = Linear(in_channels, in_channels, bias=False)
         self.normalization = normalization
         
@@ -51,10 +55,11 @@ class LaplacianAggr(MessagePassing):
         return x_j if edge_resistance is None else edge_resistance.view(-1, 1) * x_j
 
     def __repr__(self) -> str:
-        return f'self.__class__.__name__(in_channels: {self.in_channels}, normalization: {self.normalization})'
+        return f'{self.__class__.__name__}(in_channels: {self.in_channels}, normalization: {self.normalization})'
 
 
 class NullForce(Module):
+    """Placeholder that returns zeros (no dissipation/forcing)."""
     def __init__(self, *args, **kwargs) -> None:
         super().__init__()
 
@@ -63,12 +68,16 @@ class NullForce(Module):
 
 
 class SONARConv(MessagePassing):
-    def __init__(self, 
+    """
+    SONAR layer: resistance-weighted Laplacian updates over num_iters with optional
+    dissipation and forcing. GraphPropPred variant (activation on v before updating x).
+    """
+    def __init__(self,
                  in_channels: int,
                  edge_channels: int,
-                 num_iters: int = 1, 
-                 epsilon : float = 0.01,
-                 activ_fun: str = 'Identity', # it should be monotonically non-decreasing
+                 num_iters: int = 1,
+                 epsilon: float = 0.01,
+                 activ_fun: str = 'Identity',
                  normalization: str = None,
                  use_dissipation: bool = False,
                  use_forcing: bool = False,
@@ -76,16 +85,13 @@ class SONARConv(MessagePassing):
                  bias: bool = False) -> None:
 
         super().__init__(aggr = 'add')
-        self.W = Parameter(torch.empty((in_channels, in_channels)))
-        self.bias = Parameter(torch.empty(in_channels)) if bias else None
-        
         self.in_channels = in_channels
         self.edge_channels = edge_channels
         self.num_iters = num_iters
         self.use_dissipation = use_dissipation
         self.use_forcing = use_forcing
         self.epsilon = epsilon
-        self.fix_restistance = fix_resistance
+        self.fix_resistance = fix_resistance
         
         self.conv = LaplacianAggr(in_channels, normalization=normalization)
 
@@ -123,7 +129,7 @@ class SONARConv(MessagePassing):
         edge_resistance = self.edge_resistance_net(res).squeeze().abs()
         for i in range(self.num_iters):
             # If the edge resistance is not fixed, compute it
-            if not self.fix_restistance:
+            if not self.fix_resistance:
                 res = (torch.cat([x[edge_index[0]], x[edge_index[1]], edge_weight], dim=1) if edge_weight is not None 
                        else torch.cat([x[edge_index[0]], x[edge_index[1]]], dim=1))
                 edge_resistance = self.edge_resistance_net(res).squeeze().abs()
@@ -144,7 +150,11 @@ class SONARConv(MessagePassing):
 
 
 class BlockSONAR(Module):
-    def __init__(self, 
+    """
+    BlockSONAR for GraphPropPred: embed, num_blocks of (SONARConv + MLP), then readout.
+    If node_level_task: per-node readout; else global add/max/mean pool then readout.
+    """
+    def __init__(self,
                  input_dim,
                  output_dim,
                  hidden_dim,

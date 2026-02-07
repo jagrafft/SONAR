@@ -1,8 +1,16 @@
+"""
+Runnable batch runner for graph transfer experiments.
+
+Loops over models and distances, calling main.py via shell with CUDA_VISIBLE_DEVICES,
+batch size, root, epochs, and parallelism. Redirects stdout/stderr to {model}_{d}_out
+and {model}_{d}_err; prints last line containing 'Error' from stderr. Configure root,
+gpus, models, distances at top.
+"""
 import os
 import tqdm
 import sys
 
-root='./'
+root = './'
 gpus = ['2']
 models = ['blocksonar']
 distances = [3,5,10,50]

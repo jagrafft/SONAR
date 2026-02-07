@@ -1,3 +1,7 @@
+"""
+Root-neighbours synthetic dataset: one batch graph with train/val/test node masks.
+Used by dataset.py for DataSetFamily.synthetic (root_neighbours).
+"""
 import torch
 from torch_geometric.data import Data, Batch
 from typing import Dict, Tuple, List
@@ -5,6 +9,7 @@ from torch import Tensor
 
 
 class RootNeighboursDataset(object):
+    """Synthetic dataset with configurable components; get() returns a single Batch; mask_task for splits."""
 
     def __init__(self, seed: int, print_flag: bool = False):
         super().__init__()

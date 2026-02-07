@@ -1,3 +1,7 @@
+"""
+GPP dataset: download/process PNA-style data; GPPDataset InMemoryDataset.
+Defines NODE_LVL_TASKS, GRAPH_LVL_TASKS, TASKS. Used by GraphPropPred main and model_selection.
+"""
 import os
 import torch
 import os.path as osp
@@ -6,7 +10,7 @@ from torch_geometric.data import InMemoryDataset, Data, download_url, extract_ta
 
 
 def normalize(node_labels, graph_labels):
-    # normalize labels
+    """Normalize node and graph labels by max over train set."""
     max_node_labels = torch.cat([nls.max(0)[0].max(0)[0].unsqueeze(0) for nls in node_labels['train']]).max(0)[0]
     max_graph_labels = torch.cat([gls.max(0)[0].unsqueeze(0) for gls in graph_labels['train']]).max(0)[0]
     for dset in node_labels.keys():
@@ -20,6 +24,10 @@ GRAPH_LVL_TASKS = ['diam']
 TASKS = NODE_LVL_TASKS + GRAPH_LVL_TASKS
 
 class GPPDataset(InMemoryDataset):
+    """
+    InMemoryDataset for graph property prediction (sssp, ecc, diam). Downloads from URL,
+    processes pna_dataset_25-35.pkl, normalizes labels. name in TASKS, split in train/val/test.
+    """
     url = 'https://github.com/gravins/Anti-SymmetricDGN/raw/refs/heads/main/graph_prop_pred/data.tar.gz'
 
     def __init__(self, root, name, split='train', pre_transform=None, transform=None):

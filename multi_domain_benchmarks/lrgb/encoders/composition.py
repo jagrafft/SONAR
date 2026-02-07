@@ -1,3 +1,6 @@
+"""
+Composition encoders: Concat2NodeEncoder (concatenate two node encoders). Used by helpers.classes.
+"""
 import torch
 
 

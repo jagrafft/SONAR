@@ -1,2 +1,16 @@
 # SONAR
-official code repository for "SONAR: Long-Range Graph Propagation Through Information Waves" accepted at NeurIPS 2025
+
+Official code repository for "SONAR: Long-Range Graph Propagation Through Information Waves" (NeurIPS 2025).
+
+## Documentation
+
+API documentation is built with [MkDocs](https://www.mkdocs.org/) and [mkdocstrings](https://mkdocstrings.github.io/). To build or serve it locally:
+
+```bash
+pip install -r requirements-docs.txt
+mkdocs serve   # preview at http://127.0.0.1:8000
+# or
+mkdocs build   # output in site/
+```
+
+The docs use the docstrings from the codebase; building may require the project’s runtime dependencies (e.g. `torch`, `torch_geometric`, `ray`) so that mkdocstrings can import the modules.

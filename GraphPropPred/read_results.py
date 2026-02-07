@@ -1,3 +1,10 @@
+"""
+Runnable script to aggregate GraphPropPred results.
+
+Scans task dirs (diam, sssp, ecc) under path for results.csv; for each experiment
+folder takes the row with best avg best_val_score and builds a summary table of
+test score (mean ± std). Configure path at top. Run from repo root or set path accordingly.
+"""
 import os
 import pandas
 
@@ -20,8 +27,8 @@ for t in ['diam', 'sssp', 'ecc']:
         row = df.sort_values('avg best_val_score').iloc[0]
         avg, std = row['avg best_test_score'], row['std best_test_score']
         name = pp
-        val = str(round(avg,4)) + '$_{\pm' + str(round(std, 4)) + '}$'
-        val_no_round = str(avg) + '$_{\pm' + str(std) + '}$'
+        val = str(round(avg, 4)) + r'$_{\pm' + str(round(std, 4)) + r'}$'
+        val_no_round = str(avg) + r'$_{\pm' + str(std) + r'}$'
         final_df[t][name] = val
 
 final_df = pandas.DataFrame(final_df, columns=final_df.keys())

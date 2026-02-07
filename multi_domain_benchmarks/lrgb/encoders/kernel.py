@@ -1,3 +1,6 @@
+"""
+Kernel-based PE: RWSENodeEncoder, KER_DIM_PE, kernel config. Used by helpers.encoders and compute.
+"""
 import torch
 import torch.nn as nn
 

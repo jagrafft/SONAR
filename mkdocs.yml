@@ -1,0 +1,67 @@
+# MkDocs + mkdocstrings for SONAR (NeurIPS 2025)
+# Run from repo root: mkdocs serve  or  mkdocs build
+
+site_name: SONAR
+site_description: Long-Range Graph Propagation Through Information Waves
+site_url: https://github.com/your-org/SONAR  # update as needed
+
+repo_url: https://github.com/your-org/SONAR
+edit_uri: edit/main/docs/
+
+docs_dir: docs
+strict: true
+
+theme:
+  name: material
+  language: en
+  palette:
+    - scheme: default
+      primary: teal
+      accent: amber
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: teal
+      accent: amber
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [.]
+          options:
+            docstring_style: google
+            show_source: true
+            show_root_heading: true
+            heading_level: 2
+            members_order: source
+            show_symbol_type_heading: true
+
+nav:
+  - Home: index.md
+  - Implementations report: SONAR_implementations_report.md
+  - Paper reference: SONAR_paper_reference.md
+  - Module index: PYTHON_INDEX.md
+  - API:
+    - Root: api/root.md
+    - graph_transfer_task: api/graph_transfer_task.md
+    - GraphPropPred: api/GraphPropPred.md
+    - multi_domain_benchmarks: api/multi_domain_benchmarks.md
+
+markdown_extensions:
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.arithmatex:
+      generic: true
+  - toc:
+      permalink: true
+
+extra_javascript:
+  - javascripts/mathjax.js
+  - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js

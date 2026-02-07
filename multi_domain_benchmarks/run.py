@@ -1,3 +1,8 @@
+"""
+Example batch runner: loops over datasets and builds nohup commands for main.py
+(root_dir, dataset, seeds, patience, max_epochs, batch_size, cpus, gpus). Set root,
+model, cuda_id at top. Intended as a template, not a library.
+"""
 import os
 
 root = './'

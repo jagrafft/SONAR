@@ -1,3 +1,6 @@
+"""
+Planetoid (Cora, CiteSeer, PubMed) InMemoryDataset. Used by dataset.py for homophilic benchmarks.
+"""
 import torch
 import pickle as pkl
 import sys
@@ -14,6 +17,7 @@ from torch_geometric.utils import remove_self_loops
 
 
 class Planetoid(InMemoryDataset):
+    """Cora / CiteSeer / PubMed citation datasets. name in ['Cora', 'CiteSeer', 'PubMed']."""
 
     def __init__(self, root: str, name: str,
                  transform: Optional[Callable] = None,

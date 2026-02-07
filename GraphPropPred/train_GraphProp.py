@@ -1,3 +1,7 @@
+"""
+Training and evaluation for GraphPropPred: train/evaluate steps, and train_val_pipeline_GraphProp
+as a Ray remote (multi-seed, node- or graph-level loss, checkpoint resume). Used by model_selection.
+"""
 import os
 
 import torch
@@ -15,7 +19,7 @@ import pdb
 
 
 def optimizer_to(optim, device):
-    # Code from https://discuss.pytorch.org/t/moving-optimizer-from-cpu-to-gpu/96068/3
+    """Move optimizer state tensors to device (e.g. after loading checkpoint)."""
     for param in optim.state.values():
         # Not sure there are any global tensors in the state dict
         if isinstance(param, torch.Tensor):
@@ -31,6 +35,7 @@ def optimizer_to(optim, device):
 
 
 def train(model, optimizer, dataloader, criterion, device):
+    """One epoch: forward, criterion loss, backward, step. Returns (avg loss, log10(MSE), optimizer)."""
     model.train()
     epoch_loss = 0
     epoch_train_MSE = 0
@@ -56,7 +61,8 @@ def train(model, optimizer, dataloader, criterion, device):
 
 
 
-def evaluate(model, criterion, dataloader, device='cpu'): #, dataloader_jacobian=None, epoch=-1, model_name='', plot_dir='.'):
+def evaluate(model, criterion, dataloader, device='cpu'):
+    """Evaluation over dataloader. Returns (avg loss, log10(MSE))."""
     model.eval()
     epoch_test_loss = 0
     epoch_test_MSE = 0
@@ -90,13 +96,12 @@ def evaluate(model, criterion, dataloader, device='cpu'): #, dataloader_jacobian
 
 
 @ray.remote(num_cpus=1)
-def train_val_pipeline_GraphProp(model_class, 
-                           config, 
-                           data_dir,
-                           early_stopping_patience=None, 
-                           path_save_best=None, #eg, 'best_epoch_model.pth'
-                           verbose=False):
-
+def train_val_pipeline_GraphProp(model_class, config, data_dir,
+                                 early_stopping_patience=None, path_save_best=None, verbose=False):
+    """
+    Ray remote: load data, run multiple seeds with checkpoint resume, return best
+    train/val/test losses and scores. config['model'], config['optim'], config['exp'].
+    """
     print('train', config)
 
     # Load dataset

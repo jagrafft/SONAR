@@ -1,3 +1,8 @@
+"""
+Model selection for GraphPropPred: run train_val_pipeline_GraphProp for each config
+(via Ray), collect results, save results.csv and complete_results.json. Best config
+by avg best_val_score. Requires Ray to be initialized by caller (main.py).
+"""
 import torch
 
 import os
@@ -14,14 +19,15 @@ from utils.gpp_dataset import NODE_LVL_TASKS
 def model_selection(model_name: str,
                     early_stopping_patience: Optional[int] = None,
                     epochs: int = 1000,
-                    task = None,
+                    task=None,
                     data_dir: str = '.',
                     exp_dir: str = '.',
                     num_cpus=1,
                     num_gpus=0.):
     """
-    Perform a model selection phase through standard validation or k-fold model selection.
-    All the results are saved into a DataFrame and the best configuration is returned.
+    Run model selection: get_dataset once, then train_val_pipeline_GraphProp per config (Ray).
+    Saves partial_results.csv, results.csv, complete_results.json in exp_dir. Returns best
+    config result (first in sorted-by-val list). Ray must be initialized by caller.
     """
 
     assert ray.is_initialized() == True, "Ray is not initialized"

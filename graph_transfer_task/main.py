@@ -1,3 +1,11 @@
+"""
+CLI entry point for graph transfer experiments.
+
+Builds train/val/test GraphTransferDataset per (data_name, distance), runs model
+selection via Ray (or run_single_exp in debug). For each model and distance,
+aggregates results by conf_id and writes partial_results_<model>.csv and
+final_results_<model>.csv. Usage: python main.py --m <model> [--root, --distance, ...].
+"""
 import warnings
 warnings.simplefilter("ignore")
 warnings.filterwarnings("ignore", category=FutureWarning)

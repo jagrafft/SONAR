@@ -1,0 +1,9 @@
+# Documentation build: MkDocs + mkdocstrings (API from docstrings)
+# Install: pip install -r requirements-docs.txt
+# Build: mkdocs build   (from repo root)
+# Serve: mkdocs serve
+
+mkdocs>=1.5.0
+mkdocs-material>=9.0.0
+mkdocstrings[python]>=0.24.0
+pymdown-extensions>=10.0

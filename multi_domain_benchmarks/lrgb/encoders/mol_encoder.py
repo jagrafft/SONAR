@@ -1,3 +1,6 @@
+"""
+Molecular encoders: AtomEncoder, BondEncoder (OGB atom/bond features). Used by helpers.encoders for MOL datasets.
+"""
 import torch
 from ogb.utils.features import get_atom_feature_dims, get_bond_feature_dims
 

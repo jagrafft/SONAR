@@ -1,3 +1,7 @@
+"""
+Single-run experiment with optional k-fold: train/val/test with checkpoint resume,
+metric_type and task_loss from dataset. Used by main.py (single run or via ModelSelection).
+"""
 from argparse import Namespace
 import torch
 import sys
@@ -9,7 +13,6 @@ from torch_geometric.typing import OptTensor
 import numpy as np
 import os
 
-#from helpers.classes import GumbelArgs, EnvArgs, ActionArgs, ActivationType
 from helpers.metrics import LossesAndMetrics
 from helpers.utils import set_seed, optimizer_to
 from helpers.dataset_classes.dataset import DatasetBySplit, DataSet
@@ -17,6 +20,8 @@ import ray
 
 
 class Experiment(object):
+    """Runs one config: run_() over folds, single_fold builds model and train_and_test with checkpoint resume."""
+
     def __init__(self, args: Namespace):
         super().__init__()
         for arg in vars(args):

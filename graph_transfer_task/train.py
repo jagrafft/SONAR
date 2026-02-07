@@ -1,3 +1,9 @@
+"""
+Training and evaluation for the graph transfer task.
+
+Provides train/test steps (MSE loss), run_single_exp (full training with checkpoint
+resume), and run_exp as a Ray remote for parallel model selection. Used by main.py.
+"""
 import torch
 import ray
 from graph_transfer_data import GraphTransferDataset
@@ -7,7 +13,7 @@ import os
 
 
 def optimizer_to(optim, device):
-    # Code from https://discuss.pytorch.org/t/moving-optimizer-from-cpu-to-gpu/96068/3
+    """Move optimizer state tensors to device (e.g. after loading checkpoint)."""
     for param in optim.state.values():
         # Not sure there are any global tensors in the state dict
         if isinstance(param, torch.Tensor):
@@ -23,6 +29,7 @@ def optimizer_to(optim, device):
                         
                         
 def train(model, optimizer, data):
+    """One training step: forward, MSE loss, backward, step."""
     model.train()
     optimizer.zero_grad()
     out = model(data)
@@ -35,6 +42,7 @@ def train(model, optimizer, data):
 
 
 def test(model, data):
+    """Evaluation: MSE loss and predictions (no grad). Returns (loss, out)."""
     model.eval()
     with torch.no_grad():
         out = model(data)
@@ -47,10 +55,16 @@ def test(model, data):
 
 @ray.remote(num_cpus=1, num_gpus=1/8)
 def run_exp(data_name, distance, channels, model_params, args):
+    """Ray remote wrapper: runs run_single_exp on a worker."""
     return run_single_exp(data_name, distance, channels, model_params, args)
 
 
 def run_single_exp(data_name, distance, channels, model_params, args):
+    """
+    Run one graph transfer experiment: load data, build model, train with early stopping.
+    Resumes from args['ckpt_path'] if present. Returns (best_train_loss, best_val_loss,
+    best_test_loss, best_epoch, model_params, args).
+    """
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     pre_transform = None

@@ -1,3 +1,7 @@
+"""
+Shared enums and config classes: ActivationType, Pool, EnvArgs, ActionArgs, GumbelArgs, etc.
+Used by parse_arguments, model configs, and experiments.
+"""
 from enum import Enum, auto
 from torch.nn import Linear, ModuleList, Module, Dropout, ReLU, GELU, Sequential, Tanh
 from torch import Tensor

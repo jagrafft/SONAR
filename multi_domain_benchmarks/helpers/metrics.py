@@ -1,3 +1,7 @@
+"""
+Metric and loss types for multi-domain benchmarks: MetricType (get_task_loss, apply_metric),
+LossesAndMetrics, WeightedCrossEntropyLoss, GenericLoss. Used by Experiment and datasets.
+"""
 from enum import Enum, auto
 from torch.nn import CrossEntropyLoss, MSELoss, BCEWithLogitsLoss, L1Loss, Module
 import torch
@@ -13,6 +17,7 @@ import torch
 import torch.nn.functional as F
 from torch_geometric.graphgym.config import cfg
 from torch_geometric.graphgym.register import register_loss
+
 
 class WeightedCrossEntropyLoss(Module):
     """
@@ -67,6 +72,7 @@ class GenericLoss(Module):
 
 
 class LossesAndMetrics(NamedTuple):
+    """Per-split losses and metrics for one fold. get_fold_metrics returns (train, val, test) metric tensor."""
     train_loss: float
     val_loss: float
     test_loss: float

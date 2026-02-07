@@ -1,3 +1,7 @@
+"""
+Cycles dataset: make_undirected, create_cycle, CyclesDataset. Synthetic cycle graphs for expressivity.
+Used by dataset.py for DataSetFamily.synthetic.
+"""
 import torch
 from torch_geometric.data import Data
 from typing import List
@@ -5,12 +9,14 @@ from torch import Tensor
 
 
 def make_undirected(edge_index: Tensor) -> Tensor:
+    """Duplicate edges in both directions."""
     edge_index_other_direction = torch.stack((edge_index[1], edge_index[0]), dim=0)
     edge_index = torch.cat((edge_index_other_direction, edge_index), dim=1)
     return edge_index
 
 
 def create_cycle(max_cycle: int) -> List[Data]:
+    """Build list of cycle graphs (two variants per size) with train/val/test masks."""
     data_list = []
     for cycle_size in range(6, max_cycle + 1):
         if cycle_size < (max_cycle + 1 - 6) / 3 + 6:
@@ -43,6 +49,7 @@ def create_cycle(max_cycle: int) -> List[Data]:
 
 
 class CyclesDataset(object):
+    """Wrapper around create_cycle(max_cycle=13) for synthetic cycle classification."""
 
     def __init__(self):
         super().__init__()

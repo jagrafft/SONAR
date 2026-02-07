@@ -1,3 +1,6 @@
+"""
+Laplace positional encoding: LapPENodeEncoder, LAP_DIM_PE. Used by helpers.encoders and compute.
+"""
 import torch
 import torch.nn as nn
 
